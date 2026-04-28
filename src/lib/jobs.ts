@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 
 export type JobStatus = "running" | "completed" | "failed" | "paused";
 
@@ -49,6 +50,44 @@ export async function writeJob(state: JobState): Promise<void> {
   const tmp = `${path}.${process.pid}.${randomUUID()}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(next, null, 2) + "\n", { mode: 0o600 });
   await fs.rename(tmp, path);
+}
+
+/**
+ * Acquire an exclusive lock for `source` so two concurrent invocations of
+ * the migrator on the same provider can't double-import the same records.
+ * The lock is implemented via `O_EXCL | O_CREAT` on a per-source file —
+ * `fs.open` with `wx` flag rejects when the file exists. The PID is written
+ * for diagnostics. Returns a release function.
+ *
+ * Without this guard, two operators each running `ledgermem-migrate from
+ * mem0 --user u123` produce overlapping writes: each task list filters by
+ * its own `seen` set, but the OTHER process has no view of those ids and
+ * happily re-imports the same record, creating duplicate memories.
+ */
+export async function acquireSourceLock(source: string): Promise<() => Promise<void>> {
+  const safe = createHash("sha256").update(source).digest("hex").slice(0, 16);
+  const lockPath = join(JOB_DIR, `${safe}.lock`);
+  await fs.mkdir(JOB_DIR, { recursive: true, mode: 0o700 });
+  try {
+    const handle = await fs.open(lockPath, "wx", 0o600);
+    await handle.writeFile(`${process.pid}\n`);
+    await handle.close();
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "EEXIST") {
+      throw new Error(
+        `another migration is already running for source "${source}" (lock at ${lockPath}). ` +
+          `If you are sure no other process is running, remove the lock file.`,
+      );
+    }
+    throw err;
+  }
+  return async () => {
+    try {
+      await fs.unlink(lockPath);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+    }
+  };
 }
 
 export async function listJobs(): Promise<JobState[]> {

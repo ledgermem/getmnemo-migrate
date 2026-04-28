@@ -1,6 +1,6 @@
 import pLimit from "p-limit";
 import { Adapter, SourceRecord } from "../adapters/index.js";
-import { JobState, newJobId, writeJob, readJob } from "./jobs.js";
+import { JobState, newJobId, writeJob, readJob, acquireSourceLock } from "./jobs.js";
 
 export interface MemoryWriter {
   add(content: string, opts?: { metadata?: Record<string, unknown> }): Promise<unknown>;
@@ -38,6 +38,11 @@ export async function migrate(
   opts: MigrateOptions = {},
 ): Promise<JobState> {
   const concurrency = Math.max(1, opts.concurrency ?? 5);
+
+  // Hold an exclusive per-source lock for the lifetime of the run so two
+  // operators can't kick off concurrent migrations against the same
+  // provider and create duplicate memories.
+  const releaseLock = await acquireSourceLock(adapter.name);
 
   let state: JobState;
   if (opts.resumeJobId) {
@@ -103,9 +108,11 @@ export async function migrate(
     state.finishedAt = new Date().toISOString();
     state.lastError = err instanceof Error ? err.message : String(err);
     await writeJob(state);
+    await releaseLock();
     throw err;
   }
 
   await writeJob(state);
+  await releaseLock();
   return state;
 }
