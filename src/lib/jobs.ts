@@ -43,7 +43,12 @@ export async function writeJob(state: JobState): Promise<void> {
   const path = jobPath(state.id);
   await fs.mkdir(dirname(path), { recursive: true, mode: 0o700 });
   const next: JobState = { ...state, updatedAt: new Date().toISOString() };
-  await fs.writeFile(path, JSON.stringify(next, null, 2) + "\n", { mode: 0o600 });
+  // Atomic write: write to a temp file in the same directory, then rename.
+  // Without this, a crash mid-write leaves a half-written JSON file that
+  // makes the job impossible to resume.
+  const tmp = `${path}.${process.pid}.${randomUUID()}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify(next, null, 2) + "\n", { mode: 0o600 });
+  await fs.rename(tmp, path);
 }
 
 export async function listJobs(): Promise<JobState[]> {

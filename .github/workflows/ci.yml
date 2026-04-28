@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     uses: ledgermem/.github/.github/workflows/node-test.yml@main
