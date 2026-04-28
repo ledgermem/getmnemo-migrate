@@ -94,6 +94,11 @@ export async function migrate(
     state.status = "completed";
     state.finishedAt = new Date().toISOString();
   } catch (err) {
+    // Wait for in-flight writes to finish before persisting the final
+    // state — otherwise a successful write that lands AFTER the failure
+    // checkpoint won't appear in `processedIds`, and a `--resume` run will
+    // re-import the same record and create a duplicate memory.
+    await Promise.allSettled(inflight);
     state.status = "failed";
     state.finishedAt = new Date().toISOString();
     state.lastError = err instanceof Error ? err.message : String(err);
