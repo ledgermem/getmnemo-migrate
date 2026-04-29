@@ -1,9 +1,9 @@
 export interface SourceRecord {
-  /** Provider-native id; carried into LedgerMem metadata for traceability. */
+  /** Provider-native id; carried into Mnemo metadata for traceability. */
   sourceId?: string;
   /** Free-form text content to be stored as a memory. */
   content: string;
-  /** Optional metadata to merge into the LedgerMem memory. */
+  /** Optional metadata to merge into the Mnemo memory. */
   metadata?: Record<string, unknown>;
 }
 

@@ -21,7 +21,7 @@ export interface JobState {
   lastError?: string;
 }
 
-const JOB_DIR = join(homedir(), ".ledgermem", "migrations");
+const JOB_DIR = join(homedir(), ".getmnemo", "migrations");
 
 export function jobsDir(): string {
   return JOB_DIR;
@@ -59,7 +59,7 @@ export async function writeJob(state: JobState): Promise<void> {
  * `fs.open` with `wx` flag rejects when the file exists. The PID is written
  * for diagnostics. Returns a release function.
  *
- * Without this guard, two operators each running `ledgermem-migrate from
+ * Without this guard, two operators each running `getmnemo-migrate from
  * mem0 --user u123` produce overlapping writes: each task list filters by
  * its own `seen` set, but the OTHER process has no view of those ids and
  * happily re-imports the same record, creating duplicate memories.

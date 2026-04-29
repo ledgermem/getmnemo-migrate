@@ -3,7 +3,7 @@ import { Command } from "commander";
 import cliProgress from "cli-progress";
 import kleur from "kleur";
 import ora from "ora";
-import { LedgerMem } from "@ledgermem/memory";
+import { Mnemo } from "@getmnemo/memory";
 import { ADAPTER_NAMES, AdapterConfig, createAdapter } from "./adapters/index.js";
 import { migrate, planMigration } from "./lib/migrator.js";
 import { listJobs, readJob, writeJob } from "./lib/jobs.js";
@@ -28,24 +28,24 @@ function buildAdapterConfig(opts: CommonAdapterOpts): AdapterConfig {
   };
 }
 
-function getLedgerMemClient(): LedgerMem {
-  const apiKey = process.env.LEDGERMEM_API_KEY;
-  const workspaceId = process.env.LEDGERMEM_WORKSPACE_ID;
-  const apiUrl = process.env.LEDGERMEM_API_URL ?? "https://api.proofly.dev";
+function getMnemoClient(): Mnemo {
+  const apiKey = process.env.GETMNEMO_API_KEY;
+  const workspaceId = process.env.GETMNEMO_WORKSPACE_ID;
+  const apiUrl = process.env.GETMNEMO_API_URL ?? "https://api.getmnemo.xyz";
   if (!apiKey || !workspaceId) {
     throw new Error(
-      "LEDGERMEM_API_KEY and LEDGERMEM_WORKSPACE_ID must be set (run `ledgermem login` from @ledgermem/cli or export them).",
+      "GETMNEMO_API_KEY and GETMNEMO_WORKSPACE_ID must be set (run `getmnemo login` from @getmnemo/cli or export them).",
     );
   }
-  return new LedgerMem({ apiKey, workspaceId, apiUrl });
+  return new Mnemo({ apiKey, workspaceId, apiUrl });
 }
 
 export function buildCli(): Command {
   const program = new Command();
 
   program
-    .name("ledgermem-migrate")
-    .description(`${kleur.cyan("LedgerMem migrate")} — import memories from external providers.`)
+    .name("getmnemo-migrate")
+    .description(`${kleur.cyan("Mnemo migrate")} — import memories from external providers.`)
     .version(VERSION, "-v, --version")
     .showHelpAfterError("(add --help for additional information)");
 
@@ -60,7 +60,7 @@ export function buildCli(): Command {
     .option("--page-size <n>", "page size hint", "100")
     .action(async (source: string, opts: CommonAdapterOpts & { concurrency?: string }) => {
       const adapter = createAdapter(source, buildAdapterConfig(opts));
-      const writer = getLedgerMemClient();
+      const writer = getMnemoClient();
       const concurrency = Number.parseInt(opts.concurrency ?? "5", 10);
 
       const total = await adapter.count();
@@ -131,7 +131,7 @@ export function buildCli(): Command {
     .action(async (jobId: string, opts: CommonAdapterOpts & { concurrency?: string }) => {
       const existing = await readJob(jobId);
       const adapter = createAdapter(existing.source, buildAdapterConfig(opts));
-      const writer = getLedgerMemClient();
+      const writer = getMnemoClient();
       const concurrency = Number.parseInt(opts.concurrency ?? "5", 10);
 
       const bar = new cliProgress.SingleBar(

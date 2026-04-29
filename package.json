@@ -1,10 +1,10 @@
 {
-  "name": "@ledgermem/migrate",
+  "name": "@getmnemo/migrate",
   "version": "0.1.0",
-  "description": "Importer CLI for migrating memories from Mem0, Zep, Supermemory, Letta, or raw JSONL into LedgerMem.",
+  "description": "Importer CLI for migrating memories from Mem0, Zep, Supermemory, Letta, or raw JSONL into Mnemo.",
   "type": "module",
   "bin": {
-    "ledgermem-migrate": "./dist/cli.js"
+    "getmnemo-migrate": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
   "files": [
@@ -21,7 +21,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@ledgermem/memory": "^0.1.0",
+    "@getmnemo/memory": "^0.1.0",
     "cli-progress": "^3.12.0",
     "commander": "^12.1.0",
     "kleur": "^4.1.5",
@@ -39,7 +39,7 @@
     "node": ">=20"
   },
   "keywords": [
-    "ledgermem",
+    "getmnemo",
     "migrate",
     "import",
     "mem0",
@@ -50,10 +50,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ledgermem/ledgermem-migrate.git"
+    "url": "git+https://github.com/getmnemo/getmnemo-migrate.git"
   },
-  "homepage": "https://github.com/ledgermem/ledgermem-migrate#readme",
+  "homepage": "https://github.com/getmnemo/getmnemo-migrate#readme",
   "bugs": {
-    "url": "https://github.com/ledgermem/ledgermem-migrate/issues"
+    "url": "https://github.com/getmnemo/getmnemo-migrate/issues"
   }
 }

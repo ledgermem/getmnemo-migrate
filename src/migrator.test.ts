@@ -54,7 +54,7 @@ describe("planMigration", () => {
 
 describe("migrate", () => {
   beforeEach(async () => {
-    await fs.rm(join(homedir(), ".ledgermem", "migrations"), { recursive: true, force: true });
+    await fs.rm(join(homedir(), ".getmnemo", "migrations"), { recursive: true, force: true });
   });
 
   afterEach(() => {
