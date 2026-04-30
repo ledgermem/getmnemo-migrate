@@ -3,7 +3,7 @@ import { Command } from "commander";
 import cliProgress from "cli-progress";
 import kleur from "kleur";
 import ora from "ora";
-import { Mnemo } from "@getmnemo/memory";
+import { Mnemo } from "@mnemo/memory";
 import { ADAPTER_NAMES, AdapterConfig, createAdapter } from "./adapters/index.js";
 import { migrate, planMigration } from "./lib/migrator.js";
 import { listJobs, readJob, writeJob } from "./lib/jobs.js";
@@ -34,7 +34,7 @@ function getMnemoClient(): Mnemo {
   const apiUrl = process.env.GETMNEMO_API_URL ?? "https://api.getmnemo.xyz";
   if (!apiKey || !workspaceId) {
     throw new Error(
-      "GETMNEMO_API_KEY and GETMNEMO_WORKSPACE_ID must be set (run `getmnemo login` from @getmnemo/cli or export them).",
+      "GETMNEMO_API_KEY and GETMNEMO_WORKSPACE_ID must be set (run `getmnemo login` from @mnemo/cli or export them).",
     );
   }
   return new Mnemo({ apiKey, workspaceId, apiUrl });
